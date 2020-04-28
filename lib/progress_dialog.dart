@@ -11,6 +11,7 @@ Widget _customBody;
 TextAlign _textAlign = TextAlign.left;
 Alignment _progressWidgetAlignment = Alignment.centerLeft;
 
+bool _shouldHide = false;
 bool _isShowing = false;
 BuildContext _context, _dismissingContext;
 ProgressDialogType _progressDialogType;
@@ -114,6 +115,7 @@ class ProgressDialog {
         if (_showLogs) debugPrint('ProgressDialog dismissed');
         return Future.value(true);
       } else {
+        _shouldHide = true;
         if (_showLogs) debugPrint('ProgressDialog already dismissed');
         return Future.value(false);
       }
@@ -125,12 +127,13 @@ class ProgressDialog {
   }
 
   Future<bool> show() async {
+    _shouldHide = false;
     try {
       if (!_isShowing) {
         _dialog = new _Body();
         showDialog<dynamic>(
           context: _context,
-          barrierDismissible: _barrierDismissible,
+          barrierDismissible: false,
           builder: (BuildContext context) {
             _dismissingContext = context;
             return WillPopScope(
@@ -152,6 +155,10 @@ class ProgressDialog {
         await Future.delayed(Duration(milliseconds: 200));
         if (_showLogs) debugPrint('ProgressDialog shown');
         _isShowing = true;
+        if(_shouldHide) {
+          await hide();
+          _shouldHide = false;
+        }
         return true;
       } else {
         if (_showLogs) debugPrint("ProgressDialog already shown/showing");
